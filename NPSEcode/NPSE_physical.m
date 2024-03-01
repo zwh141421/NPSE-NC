@@ -1,5 +1,5 @@
-function[nonlin]=NPSE_physical(flow,distrub,MESH,xi)
-global parameter
+function[nonlin]=NPSE_physical(flow,F,Ft,Fx,Fy,Fz,Fxx,Fyy,Fzz,Fxy,Fxz,Fyz,MESH,xi)
+parameter=NPSE_SetupParameter;
 r=parameter. r;
 Rg=parameter.Rg;
 RE=parameter.Re0;
@@ -17,10 +17,10 @@ U=flow.U0(:,xi);
 Ux=flow.Ux0(:,xi);
 %Ux=zeros(Ny,1);
 Uy=flow.Uy0(:,xi);
-Uxy=flow.Uxy0(:,xi);
+%Uxy=flow.Uxy0(:,xi);
 %Uxy=zeros(Ny,1);
-Uyy=flow.Uyy0(:,xi);
-Uxx=zeros(Ny,1);
+%Uyy=flow.Uyy0(:,xi);
+%Uxx=zeros(Ny,1);
 
 V=flow.V0(:,xi);
 %V=zeros(Ny,1);
@@ -28,9 +28,9 @@ Vx=flow.Vx0(:,xi);
 %Vx=zeros(Ny,1);
 Vy=flow.Vy0(:,xi);
 %Vy=zeros(Ny,1);
-Vxy=flow.Vxy0(:,xi);
+%Vxy=flow.Vxy0(:,xi);
 %Vxy=zeros(Ny,1);
-Vyy=flow.Vyy0(:,xi);
+%Vyy=flow.Vyy0(:,xi);
 %Vyy=zeros(Ny,1);
 %Vxx=zeros(Ny,1);
 
@@ -38,7 +38,7 @@ T=flow.T0(:,xi);
 Tx=flow.Tx0(:,xi);
 %Tx=zeros(Ny,1);
 Ty=flow.Ty0(:,xi);
-Tyy=flow.Tyy0(:,xi);
+%Tyy=flow.Tyy0(:,xi);
 %Txx=zeros(Ny,1);
 %Txy=zeros(l,1);
 
@@ -57,11 +57,11 @@ Deny=flow.Deny0(:,xi);
         err=zeros(Ny,1);
         ert=zeros(Ny,1);
         
-        p=Den*Rg.*T;
+        %p=Den*Rg.*T;
         pt=Den*Rg;
-        ptt=zeros(Ny,1);
+        %ptt=zeros(Ny,1);
         pr=Rg*T;
-        prr=zeros(Ny,1);
+        %prr=zeros(Ny,1);
         prt=Rg*ones(Ny,1);
 %sutherland公式        
        a1=110.4/parameter.Te;
@@ -73,7 +73,7 @@ Deny=flow.Deny0(:,xi);
        miurt=zeros(Ny,1);
        
        a2=194/parameter.Te;
-       ka=(1.0+a2)*T.^1.5./(T+a2);
+       %ka=(1.0+a2)*T.^1.5./(T+a2);
        kat=(1.0+a2)*sqrt(T).*(0.5*T+1.5*a2)./((T+a2).^2.0);
        katt=(0.75*(T.^0.5+a2*T.^(-0.5)).*(T+a2).^2.0-(T.^1.5+3.0*a2*T.^0.5).*(T+a2)).*(1.0+a2)./(T+a2).^4.0;
        kar=zeros(Ny,1);
@@ -95,17 +95,17 @@ Denxz2=zeros(Ny,1);Uxz2=zeros(Ny,1);Vxz2=zeros(Ny,1);Wxz2=zeros(Ny,1);Txz2=zeros
 Denyz2=zeros(Ny,1);Uyz2=zeros(Ny,1);Vyz2=zeros(Ny,1);Wyz2=zeros(Ny,1);Tyz2=zeros(Ny,1);
 
 for j=1:Ny
-Den2(j)=distrub.F(5*j-4);u2(j)=distrub.F(5*j-3);V2(j)=distrub.F(5*j-2);W2(j)=distrub.F(5*j-1);T2(j)=distrub.F(5*j);
-Denx2(j)=distrub.Fx(5*j-4);Ux2(j)=distrub.Fx(5*j-3);Vx2(j)=distrub.Fx(5*j-2);Wx2(j)=distrub.Fx(5*j-1);Tx2(j)=distrub.Fx(5*j);
-Deny2(j)=distrub.Fy(5*j-4);Uy2(j)=distrub.Fy(5*j-3);Vy2(j)=distrub.Fy(5*j-2);Wy2(j)=distrub.Fy(5*j-1);Ty2(j)=distrub.Fy(5*j);
-Denz2(j)=distrub.Fz(5*j-4);Uz2(j)=distrub.Fz(5*j-3);Vz2(j)=distrub.Fz(5*j-2);Wz2(j)=distrub.Fz(5*j-1);Tz2(j)=distrub.Fz(5*j);
-Dent2(j)=distrub.Ft(5*j-4);Ut2(j)=distrub.Ft(5*j-3);Vt2(j)=distrub.Ft(5*j-2);Wt2(j)=distrub.Ft(5*j-1);Tt2(j)=distrub.Ft(5*j);
-Denxx2(j)=distrub.Fxx(5*j-4);Uxx2(j)=distrub.Fxx(5*j-3);Vxx2(j)=distrub.Fxx(5*j-2);Wxx2(j)=distrub.Fxx(5*j-1);Txx2(j)=distrub.Fxx(5*j);
-Denyy2(j)=distrub.Fyy(5*j-4);Uyy2(j)=distrub.Fyy(5*j-3);Vyy2(j)=distrub.Fyy(5*j-2);Wyy2(j)=distrub.Fyy(5*j-1);Tyy2(j)=distrub.Fyy(5*j);
-Denzz2(j)=distrub.Fzz(5*j-4);Uzz2(j)=distrub.Fzz(5*j-3);Vzz2(j)=distrub.Fzz(5*j-2);Wzz2(j)=distrub.Fzz(5*j-1);Tzz2(j)=distrub.Fzz(5*j);
-Denxy2(j)=distrub.Fxy(5*j-4);Uxy2(j)=distrub.Fxy(5*j-3);Vxy2(j)=distrub.Fxy(5*j-2);Wxy2(j)=distrub.Fxy(5*j-1);Txy2(j)=distrub.Fxy(5*j);
-Denxz2(j)=distrub.Fxz(5*j-4);Uxz2(j)=distrub.Fxz(5*j-3);Vxz2(j)=distrub.Fxz(5*j-2);Wxz2(j)=distrub.Fxz(5*j-1);Txz2(j)=distrub.Fxz(5*j);
-Denyz2(j)=distrub.Fyz(5*j-4);Uyz2(j)=distrub.Fyz(5*j-3);Vyz2(j)=distrub.Fyz(5*j-2);Wyz2(j)=distrub.Fyz(5*j-1);Tyz2(j)=distrub.Fyz(5*j);    
+Den2(j)=F(5*j-4);u2(j)=F(5*j-3);V2(j)=F(5*j-2);W2(j)=F(5*j-1);T2(j)=F(5*j);
+Denx2(j)=Fx(5*j-4);Ux2(j)=Fx(5*j-3);Vx2(j)=Fx(5*j-2);Wx2(j)=Fx(5*j-1);Tx2(j)=Fx(5*j);
+Deny2(j)=Fy(5*j-4);Uy2(j)=Fy(5*j-3);Vy2(j)=Fy(5*j-2);Wy2(j)=Fy(5*j-1);Ty2(j)=Fy(5*j);
+Denz2(j)=Fz(5*j-4);Uz2(j)=Fz(5*j-3);Vz2(j)=Fz(5*j-2);Wz2(j)=Fz(5*j-1);Tz2(j)=Fz(5*j);
+Dent2(j)=Ft(5*j-4);Ut2(j)=Ft(5*j-3);Vt2(j)=Ft(5*j-2);Wt2(j)=Ft(5*j-1);Tt2(j)=Ft(5*j);
+Denxx2(j)=Fxx(5*j-4);Uxx2(j)=Fxx(5*j-3);Vxx2(j)=Fxx(5*j-2);Wxx2(j)=Fxx(5*j-1);Txx2(j)=Fxx(5*j);
+Denyy2(j)=Fyy(5*j-4);Uyy2(j)=Fyy(5*j-3);Vyy2(j)=Fyy(5*j-2);Wyy2(j)=Fyy(5*j-1);Tyy2(j)=Fyy(5*j);
+Denzz2(j)=Fzz(5*j-4);Uzz2(j)=Fzz(5*j-3);Vzz2(j)=Fzz(5*j-2);Wzz2(j)=Fzz(5*j-1);Tzz2(j)=Fzz(5*j);
+Denxy2(j)=Fxy(5*j-4);Uxy2(j)=Fxy(5*j-3);Vxy2(j)=Fxy(5*j-2);Wxy2(j)=Fxy(5*j-1);Txy2(j)=Fxy(5*j);
+Denxz2(j)=Fxz(5*j-4);Uxz2(j)=Fxz(5*j-3);Vxz2(j)=Fxz(5*j-2);Wxz2(j)=Fxz(5*j-1);Txz2(j)=Fxz(5*j);
+Denyz2(j)=Fyz(5*j-4);Uyz2(j)=Fyz(5*j-3);Vyz2(j)=Fyz(5*j-2);Wyz2(j)=Fyz(5*j-1);Tyz2(j)=Fyz(5*j);    
 end
 
 nonlin=zeros(Ny,5);

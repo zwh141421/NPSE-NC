@@ -29,38 +29,38 @@ for zi=0:Nz-1
         sz=dz*zi;
         st=dt*ti;
         
-       %用以存储扰动项的结构体
-        distrub.F=zeros(5*Ny,1);
-        distrub.Ft=zeros(5*Ny,1);
-        distrub.Fx=zeros(5*Ny,1);
-        distrub.Fy=zeros(5*Ny,1);
-        distrub.Fz=zeros(5*Ny,1);
-        distrub.Fxx=zeros(5*Ny,1);
-        distrub.Fyy=zeros(5*Ny,1);
-        distrub.Fzz=zeros(5*Ny,1);
-        distrub.Fxy=zeros(5*Ny,1);
-        distrub.Fxz=zeros(5*Ny,1);
-        distrub.Fyz=zeros(5*Ny,1);
+       %用以存储扰动项
+        F=zeros(5*Ny,1);
+        Ft=zeros(5*Ny,1);
+        Fx=zeros(5*Ny,1);
+        Fy=zeros(5*Ny,1);
+        Fz=zeros(5*Ny,1);
+        Fxx=zeros(5*Ny,1);
+        Fyy=zeros(5*Ny,1);
+        Fzz=zeros(5*Ny,1);
+        Fxy=zeros(5*Ny,1);
+        Fxz=zeros(5*Ny,1);
+        Fyz=zeros(5*Ny,1);
         for m=0:m_max
             for n=-n_max:n_max
               if modes(1+m,n+n_max+1) 
-                  [distrub0]=NPSE_distrub(xi,m,n,sz,st,MESH,NPSE);%计算一个m，n模态的扰动项
-                  distrub.F=distrub.F+distrub0.F;                 %各模态扰动求和
-                  distrub.Ft=distrub.Ft+distrub0.Ft;
-                  distrub.Fx=distrub.Fx+distrub0.Fx;
-                  distrub.Fy=distrub.Fy+distrub0.Fy;
-                  distrub.Fz=distrub.Fz+distrub0.Fz;
-                  distrub.Fxx=distrub.Fxx+distrub0.Fxx;
-                  distrub.Fyy=distrub.Fyy+distrub0.Fyy;
-                  distrub.Fzz=distrub.Fzz+distrub0.Fzz;
-                  distrub.Fxy=distrub.Fxy+distrub0.Fxy;
-                  distrub.Fxz=distrub.Fxz+distrub0.Fxz;
-                  distrub.Fyz=distrub.Fyz+distrub0.Fyz;
+                  [F0,Ft0,Fx0,Fy0,Fz0,Fxx0,Fyy0,Fzz0,Fxy0,Fxz0,Fyz0]=NPSE_distrub(xi,m,n,sz,st,MESH,NPSE);%计算一个m，n模态的扰动项
+                  F=F+F0;                 %各模态扰动求和
+                  Ft=Ft+Ft0;
+                  Fx=Fx+Fx0;
+                  Fy=Fy+Fy0;
+                  Fz=Fz+Fz0;
+                  Fxx=Fxx+Fxx0;
+                  Fyy=Fyy+Fyy0;
+                  Fzz=Fzz+Fzz0;
+                  Fxy=Fxy+Fxy0;
+                  Fxz=Fxz+Fxz0;
+                  Fyz=Fyz+Fyz0;
               end
             end
         end
         
-        [nonlin(:,:,ti+1,zi+1)]=NPSE_physical(flow,distrub,MESH,xi);                               %计算物理空间非线性项N
+        [nonlin(:,:,ti+1,zi+1)]=NPSE_physical(flow,F,Ft,Fx,Fy,Fz,Fxx,Fyy,Fzz,Fxy,Fxz,Fyz,MESH,xi);                               %计算物理空间非线性项N
         %no=nonlin(:,:,1,1);
     end  
 end

@@ -1,19 +1,12 @@
-%LST前处理计算部分
-global parameter
-%气体基本参数
- parameter.Pr=0.72;              %普朗特数
- parameter. r=1.4;                  %气体常数
- parameter. Ma=0.01;                 %马赫数  
- parameter. Te=300;      
- parameter.Rg=1/parameter.r/parameter.Ma^2;   %无量纲普适气体常数
- parameter.Ec= parameter. Ma^2*( parameter. r-1);
+clc;
+clear;
+close all;
+addpath('../initialization')
 
- parameter.Re0=400;          %初始位置处，基于边界层厚度的雷诺数
- parameter.F=86*10^(-6);
- parameter.omega=parameter.F*parameter.Re0;
- parameter.alpha=0;
- parameter.beta=0;
- %parameter.K=-1/R;                                         %无量纲曲率
+%LST前处理计算部分
+
+%气体基本参数
+parameter=NPSE_SetupParameter;
  
 %计算用网格参数
 MESH.Ny=301;                   %法向网格点数
@@ -39,9 +32,9 @@ MESH = NPSE_Grid(MESH);               %画网格
 MESH = NPSE_dimatrix(MESH);         %微分矩阵
 %基本流
 [flow]=NPSE_Baseflow(MESH,NPSE);
-
+tic
 %初始α和φ
-[Eval,Evec]=NPSE_eigenvalue(MESH,flow,NPSE);
+[Eval,Evec]=NPSE_eigenvalue(MESH,flow,NPSE);toc
 scatter(real(Eval),imag(Eval),'filled','LineWidth',0.1);%特征值
 
 %绘图
@@ -88,7 +81,7 @@ axis([0 20 0 1.05])
 legend1=legend('u','v','w','\rho','T');
 
 %%
-
+profile on
 %NPSE计算部分
 %x方向第一处位置处的初值
 [ alf,Fai,modes ] = NPSE_initial(MESH,NPSE);
@@ -98,18 +91,18 @@ legend1=legend('u','v','w','\rho','T');
  m_max=NPSE.m_max;
  n_max=NPSE.n_max;
 
-%load matlab2.mat
-for xi=2:MESH.Nx
- %for xi=2:20
+%% load matlab2.mat
+ for xi=2:MESH.Nx
+ %for xi=2:2
     fprintf('calculating   %d / %d\n',xi,MESH.Nx);
     
     for m=0:m_max
-        for n=-n_max:n_max
-           if modes(1+m,n+n_max+1) 
-               NPSE.alf(1+m,n_max+1+n,xi)=NPSE.alf(1+m,n_max+1+n,xi-1);
-               NPSE.Fai(:,1+m,NPSE.n_max+1+n,xi)= NPSE.Fai(:,1+m,n_max+1+n,xi-1);
-           end
-        end
+    for n=-n_max:n_max
+       if modes(1+m,n+n_max+1) 
+           NPSE.alf(1+m,n_max+1+n,xi)=NPSE.alf(1+m,n_max+1+n,xi-1);
+           NPSE.Fai(:,1+m,NPSE.n_max+1+n,xi)= NPSE.Fai(:,1+m,n_max+1+n,xi-1);
+       end
+    end
     end
     
     
@@ -117,9 +110,9 @@ for xi=2:MESH.Nx
     [Fmn]=NPSE_Fmn(xi,MESH,flow,NPSE,modes);
     
     for m=0:m_max
-        for n=-n_max:n_max
-         fprintf('MaxFmn( %d , %d) = %e\n',m,n,max(abs(Fmn(:,1+m,n_max+n+1)))); 
-        end
+    for n=-n_max:n_max
+        fprintf('MaxFmn( %d , %d) = %e\n',m,n,max(abs(Fmn(:,1+m,n_max+n+1)))); 
+    end
     end  
   
 
@@ -127,12 +120,27 @@ for xi=2:MESH.Nx
  dv=1e-12;%指定差值标准
  Residual=1;%实际残差
  while abs(Residual)>dv
+     %参数矩阵
+     for i=1:MESH.Ny
+             [gamma(i*5-4:i*5,i*5-4:i*5),...
+                 A(i*5-4:i*5,i*5-4:i*5),...
+                 A2(i*5-4:i*5,i*5-4:i*5),...
+                 B(i*5-4:i*5,i*5-4:i*5),...
+                 C(i*5-4:i*5,i*5-4:i*5),...
+                 D(i*5-4:i*5,i*5-4:i*5),...
+                 Vxx(i*5-4:i*5,i*5-4:i*5),...
+                 Vyy(i*5-4:i*5,i*5-4:i*5),...
+                 Vzz(i*5-4:i*5,i*5-4:i*5),...
+                 Vxy(i*5-4:i*5,i*5-4:i*5),...
+                 Vxz(i*5-4:i*5,i*5-4:i*5),...
+                 Vyz(i*5-4:i*5,i*5-4:i*5)] =NPSE_matrix_PSE(i,xi,MESH,flow);   %%%%%%1.6s
+     end
     for m=0:m_max
-        for n=-n_max:n_max
-           if modes(1+m,n+n_max+1)  
-           [Residual,NPSE]=NPSE_PSE(xi,m,n,NPSE,MESH,flow,Fmn,Residual);
-           end
-        end
+    for n=-n_max:n_max
+       if modes(1+m,n+n_max+1)  
+        [Residual,NPSE]=NPSE_PSE(xi,m,n,NPSE,MESH,flow,Fmn,Residual,gamma,A,A2,B,C,D,Vxx,Vyy,Vzz,Vxy,Vxz,Vyz);
+       end
+    end
     end  
     fprintf('Residual=  %.10e ,alf=  %.10f  %.10fi\n',abs(Residual),real(NPSE.alf(1+1,1,xi)),imag(NPSE.alf(1+1,1,xi)));
  end

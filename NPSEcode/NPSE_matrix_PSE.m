@@ -1,6 +1,6 @@
 function[gamma,A,A2,B,C,D,Hxx,Hyy,Hzz,Hxy,Hxz,Hyz]=NPSE_matrix_PSE(i,xi,MESH,flow)
 
-global parameter
+parameter=NPSE_SetupParameter;
            
 r=parameter. r;
 Rg=parameter.Rg;
