@@ -1,5 +1,5 @@
 function [Eval,Evec]=NPSE_eigenvalue(MESH,flow,NPSE)
-global parameter
+parameter=NPSE_SetupParameter;
 zz=sqrt(-1);
 
  beta=NPSE.beta;

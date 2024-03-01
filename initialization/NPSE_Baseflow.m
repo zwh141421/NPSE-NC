@@ -1,6 +1,6 @@
 function [flow]=NPSE_Baseflow(MESH,NPSE)
 
-global parameter
+parameter=NPSE_SetupParameter;
  Pr=parameter.Pr;              %普朗特数
  r=parameter. r;                  %气体常数
  Ma=parameter. Ma;                 %马赫数  
