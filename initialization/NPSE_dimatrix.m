@@ -35,4 +35,7 @@ D2=zeros(N,N);
   DD1=kron(D11,eye(5,5));  
   DD2=kron(D22,eye(5,5)); 
 
+  DD1 =sparse(DD1);
+  DD2 =sparse(DD2);
+
 end
