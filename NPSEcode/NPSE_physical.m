@@ -1,52 +1,51 @@
-function[nonlin]=NPSE_physical(flow,F,Ft,Fx,Fy,Fz,Fxx,Fyy,Fzz,Fxy,Fxz,Fyz,MESH,xi)
+function[nonlin]=NPSE_physical(flow,F,Ft,Fx,Fy,Fz,Fxx,Fyy,Fzz,Fxy,Fxz,Fyz,Ny,xi)
 parameter=NPSE_SetupParameter;
-r=parameter. r;
-Rg=parameter.Rg;
-RE=parameter.Re0;
+r  = parameter(2);
+Rg = parameter(5);
+RE = parameter(7);
 %K=parameter.K;
 %h1=1+K*y(i);
 %h11=K
 h1=1;
 h11=0;
-PR=parameter.Pr;
-EC=parameter.Ec;
+PR=parameter(1);
+EC=parameter(6);
 
-%基本流部分
-Ny=MESH.Ny;
-U=flow.U0(:,xi);   
-Ux=flow.Ux0(:,xi);
+%base flow
+U=flow(Ny*(xi-1)+1:Ny*xi,1);   
+Ux=flow(Ny*(xi-1)+1:Ny*xi,2);
 %Ux=zeros(Ny,1);
-Uy=flow.Uy0(:,xi);
-%Uxy=flow.Uxy0(:,xi);
+Uy=flow(Ny*(xi-1)+1:Ny*xi,3);
+%Uxy=flow(Ny*(xi-1)+1:Ny*xi,4);
 %Uxy=zeros(Ny,1);
-%Uyy=flow.Uyy0(:,xi);
+%Uyy=flow(Ny*(xi-1)+1:Ny*xi,5);
 %Uxx=zeros(Ny,1);
 
-V=flow.V0(:,xi);
+V=flow(Ny*(xi-1)+1:Ny*xi,6);
 %V=zeros(Ny,1);
-Vx=flow.Vx0(:,xi);
+Vx=flow(Ny*(xi-1)+1:Ny*xi,7);
 %Vx=zeros(Ny,1);
-Vy=flow.Vy0(:,xi);
+Vy=flow(Ny*(xi-1)+1:Ny*xi,8);
 %Vy=zeros(Ny,1);
-%Vxy=flow.Vxy0(:,xi);
+%Vxy=flow(Ny*(xi-1)+1:Ny*xi,10);
 %Vxy=zeros(Ny,1);
-%Vyy=flow.Vyy0(:,xi);
+%Vyy=flow(Ny*(xi-1)+1:Ny*xi,9);
 %Vyy=zeros(Ny,1);
 %Vxx=zeros(Ny,1);
 
-T=flow.T0(:,xi);
-Tx=flow.Tx0(:,xi);
+T=flow(Ny*(xi-1)+1:Ny*xi,11);
+Tx=flow(Ny*(xi-1)+1:Ny*xi,12);
 %Tx=zeros(Ny,1);
-Ty=flow.Ty0(:,xi);
-%Tyy=flow.Tyy0(:,xi);
+Ty=flow(Ny*(xi-1)+1:Ny*xi,13);
+%Tyy=flow(Ny*(xi-1)+1:Ny*xi,14);
 %Txx=zeros(Ny,1);
 %Txy=zeros(l,1);
 
-Den=flow.Den0(:,xi);
-Denx=flow.Denx0(:,xi);
+Den=flow(Ny*(xi-1)+1:Ny*xi,15);
+Denx=flow(Ny*(xi-1)+1:Ny*xi,16);
 %Denx=zeros(Ny,1);
-Deny=flow.Deny0(:,xi);
-%Denyy=flow.Denyy0(:,xi);
+Deny=flow(Ny*(xi-1)+1:Ny*xi,17);
+%Denyy=flow(Ny*(xi-1)+1:Ny*xi,18);
 %Denxx=zeros(l,1);
 %Denxy=zeros(l,1);
 
@@ -63,8 +62,8 @@ Deny=flow.Deny0(:,xi);
         pr=Rg*T;
         %prr=zeros(Ny,1);
         prt=Rg*ones(Ny,1);
-%sutherland公式        
-       a1=110.4/parameter.Te;
+%sutherland law        
+       a1=110.4/parameter(4);
        miu=(1.0+a1)*T.^1.5./(T+a1);
        miut=(1.0+a1)*sqrt(T).*(0.5*T+1.5*a1)./((T+a1).^2.0);
        miutt=(0.75*(T.^0.5+a1*T.^(-0.5)).*(T+a1).^2.0-(T.^1.5+3.0*a1*T.^0.5).*(T+a1)).*(1.0+a1)./(T+a1).^4.0;
@@ -72,7 +71,7 @@ Deny=flow.Deny0(:,xi);
        miurr=zeros(Ny,1);
        miurt=zeros(Ny,1);
        
-       a2=194/parameter.Te;
+       a2=194/parameter(4);
        %ka=(1.0+a2)*T.^1.5./(T+a2);
        kat=(1.0+a2)*sqrt(T).*(0.5*T+1.5*a2)./((T+a2).^2.0);
        katt=(0.75*(T.^0.5+a2*T.^(-0.5)).*(T+a2).^2.0-(T.^1.5+3.0*a2*T.^0.5).*(T+a2)).*(1.0+a2)./(T+a2).^4.0;
@@ -81,32 +80,19 @@ Deny=flow.Deny0(:,xi);
        kart=zeros(Ny,1);
        
        
-%扰动项部分
-Den2=zeros(Ny,1);u2=zeros(Ny,1);V2=zeros(Ny,1);W2=zeros(Ny,1);T2=zeros(Ny,1);
-Denx2=zeros(Ny,1);Ux2=zeros(Ny,1);Vx2=zeros(Ny,1);Wx2=zeros(Ny,1);Tx2=zeros(Ny,1);
-Deny2=zeros(Ny,1);Uy2=zeros(Ny,1);Vy2=zeros(Ny,1);Wy2=zeros(Ny,1);Ty2=zeros(Ny,1);
-Denz2=zeros(Ny,1);Uz2=zeros(Ny,1);Vz2=zeros(Ny,1);Wz2=zeros(Ny,1);Tz2=zeros(Ny,1);
-Dent2=zeros(Ny,1);Ut2=zeros(Ny,1);Vt2=zeros(Ny,1);Wt2=zeros(Ny,1);Tt2=zeros(Ny,1);
-Denxx2=zeros(Ny,1);Uxx2=zeros(Ny,1);Vxx2=zeros(Ny,1);Wxx2=zeros(Ny,1);Txx2=zeros(Ny,1);
-Denyy2=zeros(Ny,1);Uyy2=zeros(Ny,1);Vyy2=zeros(Ny,1);Wyy2=zeros(Ny,1);Tyy2=zeros(Ny,1);
-Denzz2=zeros(Ny,1);Uzz2=zeros(Ny,1);Vzz2=zeros(Ny,1);Wzz2=zeros(Ny,1);Tzz2=zeros(Ny,1);
-Denxy2=zeros(Ny,1);Uxy2=zeros(Ny,1);Vxy2=zeros(Ny,1);Wxy2=zeros(Ny,1);Txy2=zeros(Ny,1);
-Denxz2=zeros(Ny,1);Uxz2=zeros(Ny,1);Vxz2=zeros(Ny,1);Wxz2=zeros(Ny,1);Txz2=zeros(Ny,1);
-Denyz2=zeros(Ny,1);Uyz2=zeros(Ny,1);Vyz2=zeros(Ny,1);Wyz2=zeros(Ny,1);Tyz2=zeros(Ny,1);
+%Disturbance term
+Den2=F(1:5:5*Ny);u2=F(2:5:5*Ny);V2=F(3:5:5*Ny);W2=F(4:5:5*Ny);T2=F(5:5:5*Ny);
+Denx2=Fx(1:5:5*Ny);Ux2=Fx(2:5:5*Ny);Vx2=Fx(3:5:5*Ny);Wx2=Fx(4:5:5*Ny);Tx2=Fx(5:5:5*Ny);
+Deny2=Fy(1:5:5*Ny);Uy2=Fy(2:5:5*Ny);Vy2=Fy(3:5:5*Ny);Wy2=Fy(4:5:5*Ny);Ty2=Fy(5:5:5*Ny);
+Denz2=Fz(1:5:5*Ny);Uz2=Fz(2:5:5*Ny);Vz2=Fz(3:5:5*Ny);Wz2=Fz(4:5:5*Ny);Tz2=Fz(5:5:5*Ny);
+Dent2=Ft(1:5:5*Ny);Ut2=Ft(2:5:5*Ny);Vt2=Ft(3:5:5*Ny);Wt2=Ft(4:5:5*Ny);Tt2=Ft(5:5:5*Ny);
+Denxx2=Fxx(1:5:5*Ny);Uxx2=Fxx(2:5:5*Ny);Vxx2=Fxx(3:5:5*Ny);Wxx2=Fxx(4:5:5*Ny);Txx2=Fxx(5:5:5*Ny);
+Denyy2=Fyy(1:5:5*Ny);Uyy2=Fyy(2:5:5*Ny);Vyy2=Fyy(3:5:5*Ny);Wyy2=Fyy(4:5:5*Ny);Tyy2=Fyy(5:5:5*Ny);
+Denzz2=Fzz(1:5:5*Ny);Uzz2=Fzz(2:5:5*Ny);Vzz2=Fzz(3:5:5*Ny);Wzz2=Fzz(4:5:5*Ny);Tzz2=Fzz(5:5:5*Ny);
+Denxy2=Fxy(1:5:5*Ny);Uxy2=Fxy(2:5:5*Ny);Vxy2=Fxy(3:5:5*Ny);Wxy2=Fxy(4:5:5*Ny);Txy2=Fxy(5:5:5*Ny);
+Denxz2=Fxz(1:5:5*Ny);Uxz2=Fxz(2:5:5*Ny);Vxz2=Fxz(3:5:5*Ny);Wxz2=Fxz(4:5:5*Ny);Txz2=Fxz(5:5:5*Ny);
+Denyz2=Fyz(1:5:5*Ny);Uyz2=Fyz(2:5:5*Ny);Vyz2=Fyz(3:5:5*Ny);Wyz2=Fyz(4:5:5*Ny);Tyz2=Fyz(5:5:5*Ny);    
 
-for j=1:Ny
-Den2(j)=F(5*j-4);u2(j)=F(5*j-3);V2(j)=F(5*j-2);W2(j)=F(5*j-1);T2(j)=F(5*j);
-Denx2(j)=Fx(5*j-4);Ux2(j)=Fx(5*j-3);Vx2(j)=Fx(5*j-2);Wx2(j)=Fx(5*j-1);Tx2(j)=Fx(5*j);
-Deny2(j)=Fy(5*j-4);Uy2(j)=Fy(5*j-3);Vy2(j)=Fy(5*j-2);Wy2(j)=Fy(5*j-1);Ty2(j)=Fy(5*j);
-Denz2(j)=Fz(5*j-4);Uz2(j)=Fz(5*j-3);Vz2(j)=Fz(5*j-2);Wz2(j)=Fz(5*j-1);Tz2(j)=Fz(5*j);
-Dent2(j)=Ft(5*j-4);Ut2(j)=Ft(5*j-3);Vt2(j)=Ft(5*j-2);Wt2(j)=Ft(5*j-1);Tt2(j)=Ft(5*j);
-Denxx2(j)=Fxx(5*j-4);Uxx2(j)=Fxx(5*j-3);Vxx2(j)=Fxx(5*j-2);Wxx2(j)=Fxx(5*j-1);Txx2(j)=Fxx(5*j);
-Denyy2(j)=Fyy(5*j-4);Uyy2(j)=Fyy(5*j-3);Vyy2(j)=Fyy(5*j-2);Wyy2(j)=Fyy(5*j-1);Tyy2(j)=Fyy(5*j);
-Denzz2(j)=Fzz(5*j-4);Uzz2(j)=Fzz(5*j-3);Vzz2(j)=Fzz(5*j-2);Wzz2(j)=Fzz(5*j-1);Tzz2(j)=Fzz(5*j);
-Denxy2(j)=Fxy(5*j-4);Uxy2(j)=Fxy(5*j-3);Vxy2(j)=Fxy(5*j-2);Wxy2(j)=Fxy(5*j-1);Txy2(j)=Fxy(5*j);
-Denxz2(j)=Fxz(5*j-4);Uxz2(j)=Fxz(5*j-3);Vxz2(j)=Fxz(5*j-2);Wxz2(j)=Fxz(5*j-1);Txz2(j)=Fxz(5*j);
-Denyz2(j)=Fyz(5*j-4);Uyz2(j)=Fyz(5*j-3);Vyz2(j)=Fyz(5*j-2);Wyz2(j)=Fyz(5*j-1);Tyz2(j)=Fyz(5*j);    
-end
 
 nonlin=zeros(Ny,5);
 

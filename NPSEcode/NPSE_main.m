@@ -3,45 +3,47 @@ clear;
 close all;
 addpath('../initialization')
 
-%LST前处理计算部分
+% LST
 
-%气体基本参数
-parameter=NPSE_SetupParameter;
+% Flow Parameter
+parameter=NPSE_SetupParameter;%1.Pr;2.r;3.Ma;4.Te;5.Rg;6.Ec;7.Re0;8.F;9.omega;10.alpha;11.beta
  
-%计算用网格参数
-MESH.Ny=301;                   %法向网格点数
-MESH.Nx=101;                  %流向网格数
-MESH.ymax=100;                 %网格点最大值
-MESH.yi=3;                    %网格加密点范围参数
-MESH.li=0;                 %1:考虑特征值平方项。   0：不考虑特征值平方项
+% Mesh Parameter
+Ny=301;                  
+Nx=101;                 
+ymax=100;                
+yi=3;   
 
-%NPSE计算参数
-NPSE.m_max=5;                    %m模态数
-NPSE.n_max=0;                    %n模态数
+li=0;                 %1:alf^2   0:no alf^2
+
+% NPSE Parameter
+NPSE=zeros(8,1);
+NPSE(1) = 5;                    % m mode
+NPSE(2) = 0;                    % n mode
 m=1;
 n=0;        
-NPSE.Amp=0.00176776695;          %扰动的幅值/根号2
-NPSE.omega=m*parameter.omega;
-NPSE.beta=n*parameter.beta;
-NPSE.X0=parameter.Re0;
-NPSE.Xmax=2500;
-NPSE.X=linspace(NPSE.X0,NPSE.Xmax,MESH.Nx);
-NPSE.dx=(NPSE.Xmax-NPSE.X0)/(MESH.Nx-1);
-%离散方法
-MESH = NPSE_Grid(MESH);               %画网格
-MESH = NPSE_dimatrix(MESH);         %微分矩阵
-%基本流
-[flow]=NPSE_Baseflow(MESH,NPSE);
-tic
-%初始α和φ
-[Eval,Evec]=NPSE_eigenvalue(MESH,flow,NPSE);toc
-scatter(real(Eval),imag(Eval),'filled','LineWidth',0.1);%特征值
+NPSE(3) = 0.00176776695;          % Amp
+NPSE(4) = m*parameter(9);       % omega
+NPSE(5) = n*parameter(11);       % beta
+NPSE(6) = parameter(7);            % X0
+NPSE(7) = 2500;                  % Xmax
+NPSE(8) = (NPSE(7)-NPSE(6))/(Nx-1); % dx
+X       = linspace(NPSE(6),NPSE(7),Nx);
+% 
+[y,z,deltaz,dy,ddy] = NPSE_Grid(Ny,yi,ymax);               
+[DD1,DD2]= NPSE_dimatrix(Ny,dy,ddy,deltaz);         % difference matrix
+% Base Flow
+[flow0]=NPSE_Baseflow(y,Nx,Ny,X,NPSE);
 
-%绘图
+% Eigenvalue Calculation
+[Eval,Evec]=NPSE_eigenvalue(Ny,DD1,DD2,li,flow0,NPSE);
+scatter(real(Eval),imag(Eval),'filled','LineWidth',0.1);
+
+
 e_is=382;%1426 %382
 
-N=MESH.Ny;
-y=MESH.y;
+N=Ny;
+
 a1=Eval(e_is);
 b1=Evec(:,e_is);
 
@@ -52,8 +54,7 @@ for n3=1:1:N
 end
 b1=b1/max(u1);
 
-NPSE.a1=a1;
-NPSE.b1=b1(1:5*N);
+b1=b1(1:5*N);
 
 den1=zeros(1,N);
 u1=zeros(1,N);
@@ -82,46 +83,45 @@ legend1=legend('u','v','w','\rho','T');
 
 %%
 profile on
-%NPSE计算部分
-%x方向第一处位置处的初值
-[ alf,Fai,modes ] = NPSE_initial(MESH,NPSE);
- NPSE.alf=alf;
- NPSE.Fai=Fai;
- 
- m_max=NPSE.m_max;
- n_max=NPSE.n_max;
+% NPSE 
 
-%% load matlab2.mat
- for xi=2:MESH.Nx
+[ flow,alf,Fai,modes ] = NPSE_initial(Nx,Ny,flow0,a1,b1,NPSE);
+
+ 
+ m_max=NPSE(1);
+ n_max=NPSE(2);
+
+
+ for xi=2:10
  %for xi=2:2
-    fprintf('calculating   %d / %d\n',xi,MESH.Nx);
+    fprintf('calculating   % d / %d \n',xi,Nx);
     
     for m=0:m_max
     for n=-n_max:n_max
        if modes(1+m,n+n_max+1) 
-           NPSE.alf(1+m,n_max+1+n,xi)=NPSE.alf(1+m,n_max+1+n,xi-1);
-           NPSE.Fai(:,1+m,NPSE.n_max+1+n,xi)= NPSE.Fai(:,1+m,n_max+1+n,xi-1);
+           alf(1,(xi-1)*(1+m_max)*(2*n_max+1)+m*(2*n_max+1)+(n_max+1+n)) = alf(1,(xi-2)*(1+m_max)*(2*n_max+1)+m*(2*n_max+1)+(n_max+1+n));
+           Fai(:,(xi-1)*(1+m_max)*(2*n_max+1)+m*(2*n_max+1)+(n_max+1+n)) = Fai(:,(xi-2)*(1+m_max)*(2*n_max+1)+m*(2*n_max+1)+(n_max+1+n));
        end
     end
     end
     
-    
-%计算Fmn
-    [Fmn]=NPSE_Fmn(xi,MESH,flow,NPSE,modes);
-    
+  tic  
+% Calculate Fmn
+    [Fmn]=NPSE_Fmn(xi,Ny,DD1,DD2,flow,X,alf,Fai,NPSE,modes);
+    toc
     for m=0:m_max
     for n=-n_max:n_max
-        fprintf('MaxFmn( %d , %d) = %e\n',m,n,max(abs(Fmn(:,1+m,n_max+n+1)))); 
+        fprintf('MaxFmn( % d , % d) = % e \n',m,n,max(abs(Fmn(:,m*(2*n_max+1)+(n+n_max+1))))); 
     end
     end  
   
 
- %load matlab3.mat  
- dv=1e-12;%指定差值标准
- Residual=1;%实际残差
+
+ dv=1e-12;%Setting deviation value
+ Residual=1;% deviation value
  while abs(Residual)>dv
-     %参数矩阵
-     for i=1:MESH.Ny
+     % 
+     for i=1:Ny
              [gamma(i*5-4:i*5,i*5-4:i*5),...
                  A(i*5-4:i*5,i*5-4:i*5),...
                  A2(i*5-4:i*5,i*5-4:i*5),...
@@ -133,21 +133,21 @@ profile on
                  Vzz(i*5-4:i*5,i*5-4:i*5),...
                  Vxy(i*5-4:i*5,i*5-4:i*5),...
                  Vxz(i*5-4:i*5,i*5-4:i*5),...
-                 Vyz(i*5-4:i*5,i*5-4:i*5)] =NPSE_matrix_PSE(i,xi,MESH,flow);   %%%%%%1.6s
+                 Vyz(i*5-4:i*5,i*5-4:i*5)] =NPSE_matrix_PSE(i,xi,Ny,flow); 
      end
     for m=0:m_max
     for n=-n_max:n_max
        if modes(1+m,n+n_max+1)  
-        [Residual,NPSE]=NPSE_PSE(xi,m,n,NPSE,MESH,flow,Fmn,Residual,gamma,A,A2,B,C,D,Vxx,Vyy,Vzz,Vxy,Vxz,Vyz);
+        [Residual,alf,Fai,NPSE]=NPSE_PSE(xi,m,n,X,alf,Fai,NPSE,y,Ny,DD1,DD2,Fmn,Residual,gamma,A,A2,B,C,D,Vxx,Vyy,Vzz,Vxy,Vxz,Vyz);
        end
     end
     end  
-    fprintf('Residual=  %.10e ,alf=  %.10f  %.10fi\n',abs(Residual),real(NPSE.alf(1+1,1,xi)),imag(NPSE.alf(1+1,1,xi)));
+    fprintf('Residual=  % .10e ,alf=  % .10f  % .10fi \n',abs(Residual),real(alf(1,(xi-1)*(1+m_max)*(2*n_max+1)+(2*n_max+1)+(n_max+1))),imag(alf(1,(xi-1)*(1+m_max)*(2*n_max+1)+(2*n_max+1)+(n_max+1))));
  end
  
  for m=0:m_max
      for n=-n_max:n_max
-         fprintf('MaxAbsFai( %d , %d) = %.10e\n',m,n,max(abs(NPSE.Fai(:,1+m,n_max+1+n,xi))))
+         fprintf('MaxAbsFai( % d , % d) = % .10e \n',m,n,max(abs(Fai(:,(xi-1)*(1+m_max)*(2*n_max+1)+m*(2*n_max+1)+(n_max+1+n)))))
      end
  end
  
@@ -156,7 +156,7 @@ profile on
          if modes(1+m,n_max+1+n)==0
          if max(abs(Fmn(:,1+m,n_max+1+n)))>1e-16
              modes(1+m,n_max+1+n)=1;
-             fprintf('Mode( %d , %d) Started\n',m,n);
+             fprintf('Mode( % d , % d) Started \n',m,n);
          end
          end
      end
@@ -164,3 +164,4 @@ profile on
  fprintf('\n')
     
  end
+profile viewer

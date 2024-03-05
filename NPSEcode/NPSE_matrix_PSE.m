@@ -1,49 +1,50 @@
-function[gamma,A,A2,B,C,D,Hxx,Hyy,Hzz,Hxy,Hxz,Hyz]=NPSE_matrix_PSE(i,xi,MESH,flow)
+function[gamma,A,A2,B,C,D,Hxx,Hyy,Hzz,Hxy,Hxz,Hyz]=NPSE_matrix_PSE(i,xi,Ny,flow)
 
 parameter=NPSE_SetupParameter;
            
-r=parameter. r;
-Rg=parameter.Rg;
-RE=parameter.Re0;
+r  = parameter(2);
+Rg = parameter(5);
+RE = parameter(7);
 %K=parameter.K;
 %h1=1+K*y(i);
 %h11=K
 h1=1;
 h11=0;
-PR=parameter.Pr;
-EC=parameter.Ec;
+PR = parameter(1);
+EC = parameter(6);
 
 
-Ny=MESH.Ny;
 
-U=flow.U0(:,xi);   
-Ux=flow.Ux0(:,xi);
-Uy=flow.Uy0(:,xi);
-Uxy=flow.Uxy0(:,xi);
-Uyy=flow.Uyy0(:,xi);
+U=flow(Ny*(xi-1)+1:Ny*xi,1);   
+Ux=flow(Ny*(xi-1)+1:Ny*xi,2);
+Uy=flow(Ny*(xi-1)+1:Ny*xi,3);
+Uxy=flow(Ny*(xi-1)+1:Ny*xi,4);
+Uyy=flow(Ny*(xi-1)+1:Ny*xi,5);
 Uxx=zeros(Ny,1);
 
-V=flow.V0(:,xi);
-Vx=flow.Vx0(:,xi);
-Vy=flow.Vy0(:,xi);
-Vxy=flow.Vxy0(:,xi);
-Vyy=flow.Vyy0(:,xi);
+V=flow(Ny*(xi-1)+1:Ny*xi,6);
+Vx=flow(Ny*(xi-1)+1:Ny*xi,7);
+Vy=flow(Ny*(xi-1)+1:Ny*xi,8);
+Vyy=flow(Ny*(xi-1)+1:Ny*xi,9);
+Vxy=flow(Ny*(xi-1)+1:Ny*xi,10);
 Vxx=zeros(Ny,1);
 
-T=flow.T0(:,xi);
-Tx=flow.Tx0(:,xi);
-Ty=flow.Ty0(:,xi);
-Tyy=flow.Tyy0(:,xi);
+T=flow(Ny*(xi-1)+1:Ny*xi,11);
+Tx=flow(Ny*(xi-1)+1:Ny*xi,12);
+Ty=flow(Ny*(xi-1)+1:Ny*xi,13);
+Tyy=flow(Ny*(xi-1)+1:Ny*xi,14);
 Txx=zeros(Ny,1);
+%Txy=zeros(l,1);
 
-Den=flow.Den0(:,xi);
-Denx=flow.Denx0(:,xi);
-Deny=flow.Deny0(:,xi);
-%Denyy=flow.Denyy0(:,xi);
-%Denxx=zeros(Ny,1);
-%Denxy=zeros(Ny,1);
+Den=flow(Ny*(xi-1)+1:Ny*xi,15);
+Denx=flow(Ny*(xi-1)+1:Ny*xi,16);
+Deny=flow(Ny*(xi-1)+1:Ny*xi,17);
+%Denyy=flow(Ny*(xi-1)+1:Ny*xi,18);
+%Denxx=zeros(l,1);
+%Denxy=zeros(l,1);
 
-%理想气体
+
+%ideal gas
         e= Rg*T/(r-1);
         et=Rg/(r-1)*ones(Ny,1);
         ett=zeros(Ny,1);
@@ -57,8 +58,8 @@ Deny=flow.Deny0(:,xi);
         pr=Rg*T;
         prr=zeros(Ny,1);
         prt=Rg*ones(Ny,1);
-%sutherland公式        
-       a1=110.4/parameter.Te;
+%sutherland law        
+       a1=110.4/parameter(4);
        miu=(1.0+a1)*T.^1.5./(T+a1);
        miut=(1.0+a1)*sqrt(T).*(0.5*T+1.5*a1)./((T+a1).^2.0);
        miutt=(0.75*(T.^0.5+a1*T.^(-0.5)).*(T+a1).^2.0-(T.^1.5+3.0*a1*T.^0.5).*(T+a1)).*(1.0+a1)./(T+a1).^4.0;
@@ -66,7 +67,7 @@ Deny=flow.Deny0(:,xi);
        miurr=zeros(Ny,1);
        miurt=zeros(Ny,1);
        
-       a2=194/parameter.Te;
+       a2=194/parameter(4);
        ka=(1.0+a2)*T.^1.5./(T+a2);
        kat=(1.0+a2)*sqrt(T).*(0.5*T+1.5*a2)./((T+a2).^2.0);
        katt=(0.75*(T.^0.5+a2*T.^(-0.5)).*(T+a2).^2.0-(T.^1.5+3.0*a2*T.^0.5).*(T+a2)).*(1.0+a2)./(T+a2).^4.0;
@@ -92,7 +93,7 @@ A=[h1.^(-1).*U(i),h1.^(-1).*Den(i),0,0,0;h1.^(-1).*pr(i)+h1.^(-1).*U(i).^2+(-4/3
   -1).*EC.^(-1).*h1.^(-2).*PR.^(-1).*RE.^(-1).*Denx(i).*kar(i)+(-2).*EC.^(-1).*h1.^(-2).*PR.^(-1).*RE.^(-1).*kat(i).*Tx(i)+h1.^(-1).*Den(i).*et(i).*U(i) ...
   ];
 
-%压力修正后的矩阵A
+%Pressure-corrected matrix A
 A2=[h1.^(-1).*U(i),h1.^(-1).*Den(i),0,0,0;h1.^(-1).*pr(i)+h1.^(-1).*U(i).^2+(-4/3).*h1.^(-2).*RE.^(-1).*miur(i).*Ux(i)+(-4/3).*h1.^(-2).*h11.*RE.^(-1).* ...
   miur(i).*V(i)+(2/3).*h1.^(-1).*RE.^(-1).*miur(i).*Vy(i),(-4/3).*h1.^(-2).*RE.^(-1).*Denx(i).*miur(i)+(-4/3).*h1.^(-2).*RE.^(-1).*miut(i).*Tx(i)+2.* ...
   h1.^(-1).*Den(i).*U(i),(-7/3).*h1.^(-2).*h11.*RE.^(-1).*miu(i)+(-1).*h1.^(-1).*RE.^(-1).*Deny(i).*miur(i)+(-1).*h1.^(-1).*RE.^(-1).*miut(i).*Ty(i),0, ...
