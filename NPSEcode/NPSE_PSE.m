@@ -26,7 +26,10 @@ function[Residual,alf,Fai,NPSE]=NPSE_PSE(xi,m,n,X,alf,Fai,NPSE,y,Ny,DD1,DD2,Fmn,
      D1=D+zz*n*beta*C-zz*m*omega*gamma+zz*alfmn*A+n^2*beta^2*Vzz-zz*alfx*Vxx+alfmn^2*Vxx+alfmn*n*beta*Vxz;
      C1=Vyy;
      
-     
+     A1 = sparse(A1);
+     B1 = sparse(B1);
+     C1 = sparse(C1);
+     D1 = sparse(D1);
      % AAA=A1/dx;
      % BBB=C1*DD2-B1*DD1-D1+A1/dx;
      AAA=A1/dx+B1*DD1+D1-C1*DD2;
