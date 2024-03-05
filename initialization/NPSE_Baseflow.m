@@ -1,45 +1,43 @@
-function [flow]=NPSE_Baseflow(MESH,NPSE)
+function [flow0]=NPSE_Baseflow(y,Nx,Ny,X,NPSE)
 
 parameter=NPSE_SetupParameter;
- Pr=parameter.Pr;              %普朗特数
- r=parameter. r;                  %气体常数
- Ma=parameter. Ma;                 %马赫数  
- Te=parameter. Te;              
- Re0=parameter.Re0;
+ Pr  = parameter(1);              
+ r   = parameter(2);                
+ Ma  = parameter(3);                  
+ Te  = parameter(4);              
+ Re0 = parameter(7);
  
- ym=MESH.y;
- Nx=MESH.Nx;
- Ny=MESH.Ny;
- a1=110.4/Te;                
- a2=194/Te;                  
+ ym = y;
+ a1 = 110.4/Te;                
+ a2 = 194/Te;                  
  
- X0=Re0;
- Xmax=NPSE.Xmax;
- Xall=NPSE.X;
+ X0   = NPSE(6);
+ Xmax = NPSE(7);
+ Xall=X;
  ReAll=sqrt(Re0*Xall);
  
-%存储基本流用的结构体
-flow.U0=zeros(Ny,Nx);
-flow.Ux0=zeros(Ny,Nx);
-flow.Uy0=zeros(Ny,Nx);
-flow.Uxy0=zeros(Ny,Nx);
-flow.Uyy0=zeros(Ny,Nx);
 
-flow.V0=zeros(Ny,Nx);
-flow.Vx0=zeros(Ny,Nx);
-flow.Vy0=zeros(Ny,Nx);
-flow.Vxy0=zeros(Ny,Nx);
-flow.Vyy0=zeros(Ny,Nx);
+flow0.U0=zeros(Ny,Nx);
+flow0.Ux0=zeros(Ny,Nx);
+flow0.Uy0=zeros(Ny,Nx);
+flow0.Uxy0=zeros(Ny,Nx);
+flow0.Uyy0=zeros(Ny,Nx);
 
-flow.T0=zeros(Ny,Nx);
-flow.Tx0=zeros(Ny,Nx);
-flow.Ty0=zeros(Ny,Nx);
-flow.Tyy0=zeros(Ny,Nx);
+flow0.V0=zeros(Ny,Nx);
+flow0.Vx0=zeros(Ny,Nx);
+flow0.Vy0=zeros(Ny,Nx);
+flow0.Vxy0=zeros(Ny,Nx);
+flow0.Vyy0=zeros(Ny,Nx);
 
-flow.Den0=zeros(Ny,Nx);
-flow.Denx0=zeros(Ny,Nx);
-flow.Deny0=zeros(Ny,Nx);
-flow.Denyy0=zeros(Ny,Nx);
+flow0.T0=zeros(Ny,Nx);
+flow0.Tx0=zeros(Ny,Nx);
+flow0.Ty0=zeros(Ny,Nx);
+flow0.Tyy0=zeros(Ny,Nx);
+
+flow0.Den0=zeros(Ny,Nx);
+flow0.Denx0=zeros(Ny,Nx);
+flow0.Deny0=zeros(Ny,Nx);
+flow0.Denyy0=zeros(Ny,Nx);
 
  
  
@@ -50,11 +48,11 @@ y=deval(sol,t0);
 
 
 f=y(1,:);
-f1=y(2,:);   %f一阶导
-f2=y(3,:);   %f二阶导
+f1=y(2,:);   %first derivative of f
+f2=y(3,:);   %second derivative of f
 g=y(4,:);
-g1=y(5,:);   %g一阶导
-G=y(6,:);    %g积分，即η
+g1=y(5,:);   %first derivative of g
+G=y(6,:);    %Integral of g, η
 
 %U0=f1;
 %T0=g;
@@ -64,42 +62,42 @@ G=y(6,:);    %g积分，即η
 
 C1=sqrt(g)*(1+a1)./(g+a1);                      %C1
 C2=sqrt(g)*(1+a2)./(g+a2);                      %C2
-C11=(1+a1)*g1.*(0.5*g.^(-0.5).*(g+a1)-sqrt(g))./((g+a1).^2); %C1的一阶导
-f3=(-0.5*f.*f2-C11.*f2)./C1;                                                 %f的三阶导
-g2=(-Pr*(r-1)*Ma^2*C1.*f2.^2 -0.5*Pr*f.*g1-C11.*g1)./C2;       %g的两阶导
+C11=(1+a1)*g1.*(0.5*g.^(-0.5).*(g+a1)-sqrt(g))./((g+a1).^2); %first derivative of C1
+f3=(-0.5*f.*f2-C11.*f2)./C1;                                                 %third derivative of f
+g2=(-Pr*(r-1)*Ma^2*C1.*f2.^2 -0.5*Pr*f.*g1-C11.*g1)./C2;       %second derivative of g
 
 
 for i=1:Nx
    R=ReAll(i);
    Y=G;
-  %速度U各分量场      
+  %The component of the velocity U      
   U=f1;
   Ux=-0.5/R*f2.*G./g;
   Uy=f2./g;
   Uxy=0.5/R*(f2.*g1.*G./g.^3-f2./g-f3.*G./g.^2);
   Uyy=(f3.*g-f2.*g1)./g.^3;
   
-  %速度V各分量场
+  %The component of the velocity V
   V=0.5/R*(G.*f1-f.*g);
   Vx=0.25/R^2*(f.*g1.*G./g-G.^2.*f2./g+f.*g-G.*f1);
   Vy=0.5/R*(G.*f2-f.*g1)./g;
   Vxy=0.25/R^2*((f1.*g1.*G+f.*g2.*G+f.*g1.*g-2*f2.*G.*g-G.^2.*f3)./g+(f2.*g1.*G.^2-f.*g1.^2.*G)./g.^2+f.*g1-G.*f2)./g;
   Vyy=0.5/R*(f2.*g.^2+f3.*g.*G-f1.*g1.*g-f.*g2.*g-f2.*g1.*G+f.*g1.^2);
   
-  %温度T各分量场
+  %The component of the temperature T
   T=g;
   Tx=-0.5/R*(g1.*G./g);
   Ty=g1./g;
   Tyy=(g2.*g-g1.^2)./g.^3;
   
-  %密度场ρ各分量
+  %The component of the density ρ
   Den=1./g;
   Denx=0.5/R*(G.*g1./g.^3);
   Deny=-g1./g.^3;
   Denyy=(3*g1.^2.*g.^2-g2.*g.^3)./g.^7;
   
-%对各物理场进行扩展
-[m,n]=size(Y);
+%Expand the physical fields
+[~,n]=size(Y);
 ex=10000;
 Y_e=linspace(30,300,ex+1);
 Y0=[Y Y_e(2:end)]*R/Re0;
@@ -148,29 +146,29 @@ Denx=[Denx Denx_e]*Re0/R;
 Deny=[Deny Deny_e]*Re0/R;
 Denyy=[Denyy Denyy_e]*(Re0/R)^2;
 
-%插值
-flow.U0(:,i)=interp1(Y0,U,ym,'spline');
-flow.Ux0(:,i)=interp1(Y0,Ux,ym,'spline');
-flow.Uy0(:,i)=interp1(Y0,Uy,ym,'spline');
-flow.Uxy0(:,i)=interp1(Y0,Uxy,ym,'spline');
-flow.Uyy0(:,i)=interp1(Y0,Uyy,ym,'spline');
+%interpolation
+flow0.U0(:,i)=interp1(Y0,U,ym,'spline');
+flow0.Ux0(:,i)=interp1(Y0,Ux,ym,'spline');
+flow0.Uy0(:,i)=interp1(Y0,Uy,ym,'spline');
+flow0.Uxy0(:,i)=interp1(Y0,Uxy,ym,'spline');
+flow0.Uyy0(:,i)=interp1(Y0,Uyy,ym,'spline');
 
-flow.V0(:,i)=interp1(Y0,V,ym,'spline');
-flow.Vx0(:,i)=interp1(Y0,Vx,ym,'spline');
-flow.Vy0(:,i)=interp1(Y0,Vy,ym,'spline');
-flow.Vxy0(:,i)=interp1(Y0,Vxy,ym,'spline');
-flow.Vyy0(:,i)=interp1(Y0,Vyy,ym,'spline');
+flow0.V0(:,i)=interp1(Y0,V,ym,'spline');
+flow0.Vx0(:,i)=interp1(Y0,Vx,ym,'spline');
+flow0.Vy0(:,i)=interp1(Y0,Vy,ym,'spline');
+flow0.Vxy0(:,i)=interp1(Y0,Vxy,ym,'spline');
+flow0.Vyy0(:,i)=interp1(Y0,Vyy,ym,'spline');
 
-flow.T0(:,i)=interp1(Y0,T,ym,'spline');
-flow.Tx0(:,i)=interp1(Y0,Tx,ym,'spline');
-flow.Ty0(:,i)=interp1(Y0,Ty,ym,'spline');
-flow.Tyy0(:,i)=interp1(Y0,Tyy,ym,'spline');
+flow0.T0(:,i)=interp1(Y0,T,ym,'spline');
+flow0.Tx0(:,i)=interp1(Y0,Tx,ym,'spline');
+flow0.Ty0(:,i)=interp1(Y0,Ty,ym,'spline');
+flow0.Tyy0(:,i)=interp1(Y0,Tyy,ym,'spline');
 
-flow.Den0(:,i)=interp1(Y0,Den,ym,'spline');
-flow.Denx0(:,i)=interp1(Y0,Denx,ym,'spline');
-flow.Deny0(:,i)=interp1(Y0,Deny,ym,'spline');
-flow.Denyy0(:,i)=interp1(Y0,Denyy,ym,'spline');
+flow0.Den0(:,i)=interp1(Y0,Den,ym,'spline');
+flow0.Denx0(:,i)=interp1(Y0,Denx,ym,'spline');
+flow0.Deny0(:,i)=interp1(Y0,Deny,ym,'spline');
+flow0.Denyy0(:,i)=interp1(Y0,Denyy,ym,'spline');
 
 end
-flow.R=ReAll;
+flow0.R=ReAll;
 end

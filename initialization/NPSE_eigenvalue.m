@@ -1,14 +1,13 @@
-function [Eval,Evec]=NPSE_eigenvalue(MESH,flow,NPSE)
-parameter=NPSE_SetupParameter;
+function [Eval,Evec]=NPSE_eigenvalue(Ny,DD1,DD2,li,flow0,NPSE)
+%parameter=NPSE_SetupParameter;
 zz=sqrt(-1);
 
- beta=NPSE.beta;
- omega=NPSE.omega;
- alpha=parameter.alpha;
+beta  = NPSE(5);
+omega = NPSE(4);
+ %alpha=parameter.alpha;
  
-D11=MESH.D11;
-D22=MESH.D22;
-N=MESH.Ny;
+
+N=Ny;
 
      for i=1:N
              [gamma(i*5-4:i*5,i*5-4:i*5),...
@@ -21,13 +20,13 @@ N=MESH.Ny;
                  Vzz(i*5-4:i*5,i*5-4:i*5),...
                  Vxy(i*5-4:i*5,i*5-4:i*5),...
                  Vxz(i*5-4:i*5,i*5-4:i*5),...
-                 Vyz(i*5-4:i*5,i*5-4:i*5)] =NPSE_matrix_baseflow(i,MESH,flow);   
+                 Vyz(i*5-4:i*5,i*5-4:i*5)] =NPSE_matrix_baseflow(i,Ny,flow0);   
      end
  
-     DD1=kron(D11,eye(5,5));  DD2=kron(D22,eye(5,5)); 
+
      
    
-         if MESH.li
+         if li
           A1=-zz*omega*gamma+zz*beta*C+D+beta^2*Vzz;
           B1=B-zz*beta*Vyz;
           C1=-Vyy;
@@ -58,8 +57,8 @@ N=MESH.Ny;
 
          end
        
-       %设定边界条件
-       if MESH.li
+       %boundary condition
+       if li
               %i=1
              AAA(5*N+5,:)=AAA(5*N+1,:); BBB(5*N+5,:)=BBB(5*N+1,:);
              AAA(5*N+1:5*N+4,:)=0;  BBB(5*N+1:5*N+4,:)=0;
@@ -95,12 +94,12 @@ N=MESH.Ny;
   
    [VE,D]=eig(AAA,BBB);
     e=diag(D);
-    %[~,is]=sort(abs(real(e)));  %将e的实部按升序排列，is是其目录编号
-    %es1=e(is);                         %将特征值按照实部排列
-    %VE1=VE(:,is);                    %特征向量按照特征值的顺序
+    %[~,is]=sort(abs(real(e)));  
+    %es1=e(is);                 
+    %VE1=VE(:,is);          
 
-    [~,is2]=sort(imag(e));      %将e的虚部按升序排列，is是其目录编号
-    Eval=e(is2);                     %特征值相应排序
-    Evec=VE(:,is2);                 %特征向量相应排序
+    [~,is2]=sort(imag(e));      %Sort the imaginary part of e in ascending order, where 'is' is its directory number
+    Eval=e(is2);                %The eigenvalues are ordered accordingly
+    Evec=VE(:,is2);             %The eigenvectors are ordered accordingly
    
 end

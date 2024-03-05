@@ -1,11 +1,9 @@
-function [ MESH ] = NPSE_dimatrix(MESH)
+function [DD1,DD2] = NPSE_dimatrix(Ny,dy,ddy,deltaz)
 
-N=MESH.Ny;
-dy=MESH.dy;
-ddy=MESH.ddy;
-deltaz=MESH.deltaz;
+N=Ny;
 
-%初始化离散矩阵
+
+
 D1=zeros(N,N);
 D2=zeros(N,N);
 
@@ -33,7 +31,8 @@ D2=zeros(N,N);
 
   D11= D1.*dy/deltaz;
   D22= D2.*dy.^2/deltaz^2+D1.*ddy/deltaz; 
-  MESH.D11=D11;
-  MESH.D22=D22;
+
+  DD1=kron(D11,eye(5,5));  
+  DD2=kron(D22,eye(5,5)); 
 
 end

@@ -1,26 +1,26 @@
-function[gamma,A,B,C,D,Hxx,Hyy,Hzz,Hxy,Hxz,Hyz]=NPSE_matrix_baseflow(i,MESH,flow)
+function[gamma,A,B,C,D,Hxx,Hyy,Hzz,Hxy,Hxz,Hyz]=NPSE_matrix_baseflow(i,Ny,flow0)
 
 parameter=NPSE_SetupParameter;
            
-r=parameter. r;
-Rg=parameter.Rg;
-RE=parameter.Re0;
+r  = parameter(2);
+Rg = parameter(5);
+RE = parameter(7);
 %K=parameter.K;
 %h1=1+K*y(i);
 %h11=K
 h1=1;
 h11=0;
-PR=parameter.Pr;
-EC=parameter.Ec;
+PR=parameter(1);
+EC=parameter(6);
 
 
-l=MESH.Ny;
+l=Ny;
 
-U=flow.U0(:,1);   
+U=flow0.U0(:,1);   
 Ux=zeros(l,1);
-Uy=flow.Uy0(:,1);
+Uy=flow0.Uy0(:,1);
 Uxy=zeros(l,1);
-Uyy=flow.Uyy0(:,1);
+Uyy=flow0.Uyy0(:,1);
 Uxx=zeros(l,1);
 
 V=zeros(l,1);
@@ -30,17 +30,17 @@ Vxy=zeros(l,1);
 Vyy=zeros(l,1);
 Vxx=zeros(l,1);
 
-T=flow.T0(:,1);
+T=flow0.T0(:,1);
 Tx=zeros(l,1);
-Ty=flow.Ty0(:,1);
-Tyy=flow.Tyy0;
+Ty=flow0.Ty0(:,1);
+Tyy=flow0.Tyy0;
 Txx=zeros(l,1);
 
-Den=flow.Den0(:,1);
+Den=flow0.Den0(:,1);
 Denx=zeros(l,1);
-Deny=flow.Deny0(:,1);
+Deny=flow0.Deny0(:,1);
 
-%理想气体
+%ideal gas
      
         e= Rg*T/(r-1);
         et=Rg/(r-1)*ones(l,1);
@@ -55,8 +55,8 @@ Deny=flow.Deny0(:,1);
         pr=Rg*T;
         prr=zeros(l,1);
         prt=Rg*ones(l,1);
-%sutherland公式        
-       a1=110.4/parameter.Te;
+%sutherland law        
+       a1=110.4/parameter(4);
        miu=(1.0+a1)*T.^1.5./(T+a1);
        miut=(1.0+a1)*sqrt(T).*(0.5*T+1.5*a1)./((T+a1).^2.0);
        miutt=(0.75*(T.^0.5+a1*T.^(-0.5)).*(T+a1).^2.0-(T.^1.5+3.0*a1*T.^0.5).*(T+a1)).*(1.0+a1)./(T+a1).^4.0;
@@ -64,7 +64,7 @@ Deny=flow.Deny0(:,1);
        miurr=zeros(l,1);
        miurt=zeros(l,1);
        
-       a2=194/parameter.Te;
+       a2=194/parameter(4);
        ka=(1.0+a2)*T.^1.5./(T+a2);
        kat=(1.0+a2)*sqrt(T).*(0.5*T+1.5*a2)./((T+a2).^2.0);
        katt=(0.75*(T.^0.5+a2*T.^(-0.5)).*(T+a2).^2.0-(T.^1.5+3.0*a2*T.^0.5).*(T+a2)).*(1.0+a2)./(T+a2).^4.0;
